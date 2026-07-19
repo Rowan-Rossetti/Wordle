@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "motus": {
+    "wordle": {
       "projectType": "application",
       "root": "",
       "sourceRoot": "src",
@@ -21,6 +21,9 @@
             ],
             "styles": [
               "src/styles.css"
+            ],
+            "allowedCommonJsDependencies": [
+              "nspell"
             ]
           },
           "configurations": {
@@ -45,13 +48,16 @@
           "builder": "@angular/build:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "motus:build:production"
+              "buildTarget": "wordle:build:production"
             },
             "development": {
-              "buildTarget": "motus:build:development"
+              "buildTarget": "wordle:build:development"
             }
           },
           "defaultConfiguration": "development"
+        },
+        "deploy": {
+          "builder": "angular-cli-ghpages:deploy"
         }
       }
     }
