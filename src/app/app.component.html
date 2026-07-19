@@ -1,0 +1,79 @@
+<div class="app-shell">
+  <header class="topbar">
+    <button class="brand" (click)="startRound()" aria-label="Nouvelle partie">
+      <span class="brand-mark">M</span>
+      <span><strong>MOTUS</strong><small>LE JEU DE MOTS</small></span>
+    </button>
+    <nav>
+      <button (click)="modal.set('help')" aria-label="Règles">?</button>
+      <button (click)="modal.set('stats')" aria-label="Statistiques">▥</button>
+      <button (click)="toggleTheme()" aria-label="Changer de thème">{{ theme() === 'dark' ? '☀' : '☾' }}</button>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero">
+      <span class="eyebrow">MOT APRÈS MOT</span>
+      <h1>Trouvez-le.<br><em>Passez au suivant.</em></h1>
+      <p>Six essais, des mots de tailles différentes et une nouvelle manche qui démarre automatiquement.</p>
+      <div class="length-picker">
+        <label for="length">Longueur du mot</label>
+        <select id="length" [value]="lengthChoice()" (change)="setLength($any($event.target).value)">
+          <option value="random">Aléatoire (4 à 8)</option>
+          <option *ngFor="let length of lengths" [value]="length">{{ length }} lettres</option>
+        </select>
+      </div>
+      <div class="legend"><span><i class="correct"></i>Bien placée</span><span><i class="present"></i>Mal placée</span><span><i class="absent"></i>Absente</span></div>
+    </section>
+
+    <section class="game-card">
+      <div class="game-head">
+        <span>Mot de <strong>{{ wordLength() }} lettres</strong></span>
+        <span>Essai <strong>{{ state() === 'playing' ? guesses().length + 1 : guesses().length }}</strong> / {{ maxAttempts }}</span>
+      </div>
+
+      <div class="board" [style.--letters]="wordLength()">
+        <div class="board-row" *ngFor="let row of rows(); let rowIndex = index" [class.active]="rowIndex === guesses().length && state() === 'playing'">
+          <div *ngFor="let tile of row; let tileIndex = index" class="tile" [class.correct]="tile.state === 'correct'" [class.present]="tile.state === 'present'" [class.absent]="tile.state === 'absent'" [class.filled]="tile.letter" [style.animation-delay.ms]="rowIndex < guesses().length ? tileIndex * 70 : 0">{{ tile.letter }}</div>
+        </div>
+      </div>
+
+      <div class="feedback" [class.result]="state() !== 'playing'" aria-live="polite">
+        <span>{{ message() || 'Composez un mot puis appuyez sur Entrée.' }}</span>
+        <small *ngIf="state() !== 'playing'">Prochain mot dans {{ secondsBeforeNext() }} seconde{{ secondsBeforeNext() > 1 ? 's' : '' }}.</small>
+      </div>
+
+      <div class="keyboard">
+        <div class="key-row" *ngFor="let line of keyboard; let rowIndex = index">
+          <button *ngIf="rowIndex === 2" class="key action enter" (click)="press('ENTER')" [disabled]="validating()">{{ validating() ? '…' : 'ENTRÉE' }}</button>
+          <button *ngFor="let letter of line" class="key" [class.correct]="keyState(letter) === 'correct'" [class.present]="keyState(letter) === 'present'" [class.absent]="keyState(letter) === 'absent'" (click)="press(letter)">{{ letter }}</button>
+          <button *ngIf="rowIndex === 2" class="key action delete" (click)="press('BACKSPACE')" aria-label="Effacer">⌫</button>
+        </div>
+      </div>
+
+      <div class="game-actions">
+        <button *ngIf="state() === 'playing'" (click)="skip()">Je ne trouve pas</button>
+        <button *ngIf="state() !== 'playing'" class="next" (click)="startRound()">Mot suivant maintenant</button>
+      </div>
+    </section>
+  </main>
+
+  <footer><span>Clavier physique et tactile compatible</span><span>Progression enregistrée sur cet appareil</span></footer>
+</div>
+
+<div class="overlay" *ngIf="modal()" (click)="modal.set(null)">
+  <section class="modal" (click)="$event.stopPropagation()">
+    <button class="close" (click)="modal.set(null)">×</button>
+    <ng-container *ngIf="modal() === 'help'">
+      <span class="eyebrow">RÈGLES</span><h2>Comment jouer ?</h2>
+      <p>Trouvez le mot français en six essais. La longueur est indiquée au-dessus de la grille.</p>
+      <ul><li>Vert : lettre correcte et bien placée.</li><li>Orange : lettre présente, mais mal placée.</li><li>Gris : lettre absente du mot.</li></ul>
+      <p>Après une victoire ou un échec, le mot suivant apparaît automatiquement.</p>
+    </ng-container>
+    <ng-container *ngIf="modal() === 'stats'">
+      <span class="eyebrow">STATISTIQUES</span><h2>Votre parcours</h2>
+      <div class="stats"><strong>{{ stats().played }}<small>Parties</small></strong><strong>{{ winRate() }}%<small>Victoires</small></strong><strong>{{ stats().streak }}<small>Série</small></strong><strong>{{ stats().best }}<small>Record</small></strong></div>
+      <button class="reset" (click)="resetStats()">Réinitialiser les statistiques</button>
+    </ng-container>
+  </section>
+</div>
